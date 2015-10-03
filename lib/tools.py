@@ -37,7 +37,7 @@ def normalize(name, onlyDecode=False):
 def uncodeName(name):  # Convert all the &# codes to char, remove extra-space and normalize
     from HTMLParser import HTMLParser
     name = name.replace('<![CDATA[', '').replace(']]', '')
-    name = HTMLParser().unescape(name.lower())
+    name = HTMLParser().unescape(name)
     return name
 
 
@@ -76,43 +76,43 @@ def safeName(value):  # Make the name directory and filename safe
 def checkQuality(text=""):
     # quality
     keyWords = {"Cam": ["camrip", "cam"],
-            "Telesync": ["ts", "telesync", "pdvd"],
-            "Workprint": ["wp", "workprint"],
-            "Telecine": ["tc", "telecine"],
-            "Pay-Per-View Rip": ["ppv", "ppvrip"],
-            "Screener": ["scr", "screener", "screeener","dvdscr", "dvdscreener", "bdscr"],
-            "DDC": ["ddc"],
-            "R5": ["r5", "r5.line", "r5 ac3 5 1 hq"],
-            "DVD-Rip": ["dvdrip", "dvd-rip"],
-            "DVD-R": ["dvdr", "dvd-full", "full-rip", "iso rip", "lossless rip", "untouched rip", "dvd-5 dvd-9"],
-            "HDTV": ["dsr", "dsrip", "dthrip", "dvbrip", "hdtv", "pdtv", "tvrip", "hdtvrip", "hdrip"],
-            "VODRip": ["vodrip", "vodr"],
-            "WEB-DL": ["webdl", "web dl", "web-dl"],
-            "WEBRip": ["web-rip", "webrip", "web rip"],
-            "WEBCap": ["web-cap", "webcap", "web cap"],
-            "BD/BRRip": ["bdrip", "brrip", "blu-ray", "bluray", "bdr", "bd5", "bd"],
-            "MicroHD" : ["microhd"],
-            "FullHD" : ["fullhd"],
-            }
+                "Telesync": ["ts", "telesync", "pdvd"],
+                "Workprint": ["wp", "workprint"],
+                "Telecine": ["tc", "telecine"],
+                "Pay-Per-View Rip": ["ppv", "ppvrip"],
+                "Screener": ["scr", "screener", "screeener", "dvdscr", "dvdscreener", "bdscr"],
+                "DDC": ["ddc"],
+                "R5": ["r5", "r5.line", "r5 ac3 5 1 hq"],
+                "DVD-Rip": ["dvdrip", "dvd-rip"],
+                "DVD-R": ["dvdr", "dvd-full", "full-rip", "iso rip", "lossless rip", "untouched rip", "dvd-5 dvd-9"],
+                "HDTV": ["dsr", "dsrip", "dthrip", "dvbrip", "hdtv", "pdtv", "tvrip", "hdtvrip", "hdrip"],
+                "VODRip": ["vodrip", "vodr"],
+                "WEB-DL": ["webdl", "web dl", "web-dl"],
+                "WEBRip": ["web-rip", "webrip", "web rip"],
+                "WEBCap": ["web-cap", "webcap", "web cap"],
+                "BD/BRRip": ["bdrip", "brrip", "blu-ray", "bluray", "bdr", "bd5", "bd"],
+                "MicroHD": ["microhd"],
+                "FullHD": ["fullhd"],
+                }
     color = {"Cam": "FFF4AE00",
-            "Telesync": "FFF4AE00",
-            "Workprint": "FFF4AE00",
-            "Telecine": "FFF4AE00",
-            "Pay-Per-View Rip": "FFD35400",
-            "Screener": "FFD35400",
-            "DDC": "FFD35400",
-            "R5": "FFD35400",
-            "DVD-Rip": "FFD35400",
-            "DVD-R": "FFD35400",
-            "HDTV": "FFD35400",
-            "VODRip": "FFD35400",
-            "WEB-DL": "FFD35400",
-            "WEBRip": "FFD35400",
-            "WEBCap": "FFD35400",
-            "BD/BRRip": "FFD35400",
-            "MicroHD" : "FFD35400",
-            "FullHD" : "FFD35400",
-            }
+             "Telesync": "FFF4AE00",
+             "Workprint": "FFF4AE00",
+             "Telecine": "FFF4AE00",
+             "Pay-Per-View Rip": "FFD35400",
+             "Screener": "FFD35400",
+             "DDC": "FFD35400",
+             "R5": "FFD35400",
+             "DVD-Rip": "FFD35400",
+             "DVD-R": "FFD35400",
+             "HDTV": "FFD35400",
+             "VODRip": "FFD35400",
+             "WEB-DL": "FFD35400",
+             "WEBRip": "FFD35400",
+             "WEBCap": "FFD35400",
+             "BD/BRRip": "FFD35400",
+             "MicroHD": "FFD35400",
+             "FullHD": "FFD35400",
+             }
     quality = "480p"
     textQuality = ""
     for key in keyWords:
@@ -190,8 +190,8 @@ def _cleanTitle(value=''):
 
 
 def formatTitle(value='', fileName=''):
-    if fileName =='':
-        fileName =value
+    if fileName == '':
+        fileName = value
     pos = value.rfind("/")
     value = value if pos < 0 else value[pos:]
     value = safeName(value).lower() + ' '
@@ -887,7 +887,7 @@ def __removeDirectory__(folder="", title=""):
 
 
 def getPlayableLink(page):
-    exceptionsList = Storage(settings.storageName.replace(".txt", "-ex.txt"))
+    exceptionsList = Storage(settings.storageName.replace(".txt", "-exceptions.txt"))
     result = page
     settings.debug(result)
     if 'divxatope' in page:
@@ -903,22 +903,23 @@ def getPlayableLink(page):
         # exceptions
         settings.debug(result)
         # download page
-        try:
-            response = browser.get(page, verify=False)
-            settings.debug(response.headers)
-            if response.status_code == requests.codes.ok and response.headers.get("content-type", "") == 'text/html':
-                content = re.findall('magnet:\?[^\'"\s<>\[\]]+', response.text)
+        # try:
+        response = browser.get(page, verify=False)
+        data = normalize(response.text)
+        settings.debug(response.headers)
+        if 'text/html' in response.headers.get("content-type", ""):
+            content = re.findall('magnet:\?[^\'"\s<>\[\]]+', data)
+            if content != None and len(content) > 0:
+                result = content[0]
+            else:
+                content = re.findall('https?:[^\'"\s<>\[\]]+torrent', data)
                 if content != None and len(content) > 0:
                     result = content[0]
-                else:
-                    content = re.findall('http(.*?).torrent\["\']', response.text)
-                    if content != None and len(content) > 0:
-                        result = 'http' + content[0] + '.torrent'
-            else:
-                exceptionsList.add(re.search("^https?:\/\/(.*?)/", page).group(1))
-                exceptionsList.save()
-        except:
-            pass
+        else:
+            exceptionsList.add(re.search("^https?:\/\/(.*?)/", page).group(1))
+            exceptionsList.save()
+        # except:
+        #     pass
     settings.debug(result)
     return result
 
