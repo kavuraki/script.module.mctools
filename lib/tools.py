@@ -247,42 +247,43 @@ def formatTitle(value='', fileName=''):
             title += ' (' + year.strip() + ')'
         year = year.replace('0000', '')
         folder = title
-        return {'title': title, 'folder': folder, 'rest': rest.strip(), 'type': 'MOVIE', 'cleanTitle': cleanTitle,
-                'year': year, 'quality': quality, 'textQuality': textQuality, 'height': height(quality),
-                "width": width(quality), 'language': language
-                }
+        result = {'title': title, 'folder': folder, 'rest': rest.strip(), 'type': 'MOVIE', 'cleanTitle': cleanTitle,
+                  'year': year, 'quality': quality, 'textQuality': textQuality, 'height': height(quality),
+                  "width": width(quality), 'language': language
+                  }
+        return result
     else:
         # it is a show
         rest = value.strip()  # original name
-        episode = sshow.group(0)
+        seasonEpisode = sshow.group(0)
         # clean title
         for keyword in keywords:  # checking keywords
             value = value.replace(' ' + keyword + ' ', ' ')
-        title = value[:value.find(episode)].strip()
+        title = value[:value.find(seasonEpisode)].strip()
         title = title.strip()
-        episode = episode.replace('temporada ', 's').replace(' capitulo ', 'e')
-        episode = episode.replace('temp ', 's').replace(' cap ', 'e')
-        episode = episode.replace('seizoen ', 's').replace(' afl ', 'e')
+        seasonEpisode = seasonEpisode.replace('temporada ', 's').replace(' capitulo ', 'e')
+        seasonEpisode = seasonEpisode.replace('temp ', 's').replace(' cap ', 'e')
+        seasonEpisode = seasonEpisode.replace('seizoen ', 's').replace(' afl ', 'e')
 
-        if 'x' in episode:
-            episode = 's' + episode.replace('x', 'e')
+        if 'x' in seasonEpisode:
+            seasonEpisode = 's' + seasonEpisode.replace('x', 'e')
 
-        if 's' in episode and 'e' in episode and 'season' not in episode:  # force S00E00 instead S0E0
-            temp_episode = episode.replace('s', '').split('e')
-            episode = 's%02de%02d' % (int(temp_episode[0]), int(temp_episode[1]))
+        if 's' in seasonEpisode and 'e' in seasonEpisode and 'season' not in seasonEpisode:  # force S00E00 instead S0E0
+            temp_episode = seasonEpisode.replace('s', '').split('e')
+            seasonEpisode = 's%02de%02d' % (int(temp_episode[0]), int(temp_episode[1]))
 
-        if 's' not in episode and 'e' not in episode:  # date format
-            date = episode.split()
+        if 's' not in seasonEpisode and 'e' not in seasonEpisode:  # date format
+            date = seasonEpisode.split()
             if len(date[0]) == 4:  # yyyy-mm-dd format
-                episode = episode.replace(' ', '-')  # date style episode talk shows
+                seasonEpisode = seasonEpisode.replace(' ', '-')  # date style episode talk shows
             else:  # dd mm yy format
                 if int(date[2]) > 50:
                     date[2] = '19' + date[2]
                 else:
                     date[2] = '20' + date[2]
-                episode = date[2] + '-' + date[1] + '-' + date[0]
+                seasonEpisode = date[2] + '-' + date[1] + '-' + date[0]
 
-        episode = episode.replace(' ', '')  # remove spaces in the episode format
+        seasonEpisode = seasonEpisode.replace(' ', '')  # remove spaces in the episode format
         title = exceptionsTitle(title)
         # finding year
         value = title + ' 0000 '
@@ -297,14 +298,21 @@ def formatTitle(value='', fileName=''):
         title = title.title().strip().replace('Of ', 'of ').replace('De ', 'de ')
         folder = title  # with year
         cleanTitle = _cleanTitle(title.replace(year, '').strip())  # without year
-        title = folder + ' ' + episode.upper()
+        title = folder + ' ' + seasonEpisode.upper()
         ttype = "SHOW"
+        result = {'title': title, 'folder': folder, 'rest': rest, 'type': ttype, 'cleanTitle': cleanTitle,
+                  'year': year, 'quality': quality, 'textQuality': textQuality, 'height': height(quality),
+                  "width": width(quality), "language": language,
+                  }
         if bool(re.search("EP[0-9]+", title)):
             ttype = "ANIME"
-        return {'title': title, 'folder': folder, 'rest': rest, 'type': ttype, 'cleanTitle': cleanTitle,
-                'year': year, 'quality': quality, 'textQuality': textQuality, 'height': height(quality),
-                "width": width(quality), "language": language
-                }
+            result['season'] = 1
+            result['episode'] = int(seasonEpisode.replace('ep', ''))
+        else:
+            temp = (seasonEpisode.replace('s', '')).split('e')
+            result['season'] = int(temp[0])
+            result['episode'] = int(temp[1])
+        return result
 
 
 ################################
@@ -918,15 +926,14 @@ def getPlayableLink(page):
         else:
             exceptionsList.add(re.search("^https?:\/\/(.*?)/", page).group(1))
             exceptionsList.save()
-        # except:
-        #     pass
+            # except:
+            #     pass
     settings.debug(result)
     return result
 
 
 def getInfoLabels(infoTitle):
-    import metahandlers as metahandlers
-
+    from metahandler import metahandlers
     metaget = metahandlers.MetaData()
     infoLabels = {}
     try:
@@ -951,12 +958,16 @@ def getInfoLabels(infoTitle):
                 castAndRoleList.append(item)
         infoLabels["cast"] = castList
         infoLabels["castandrole"] = castAndRoleList
+        # add episode and season
+        infoLabels['season'] = infoTitle['season']
+        infoLabels['episode'] = infoTitle['episode']
     except:
         pass
     duration = 0
     if infoLabels.has_key("duration") and infoLabels["duration"] != '' and infoLabels["duration"] != 'None':
-        duration = int(infoLabels["duration"]) * 60
+        duration = int(infoLabels["duration"])
     infoLabels['duration'] = duration
+    infoLabels['imdb_id'] = infoLabels.get('imdb_id', "")
     settings.debug(infoLabels)
     return infoLabels
 
