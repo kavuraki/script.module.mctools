@@ -66,6 +66,7 @@ def safeName(value):  # Make the name directory and filename safe
     value = value.replace("704x480", "480p")
     value = value.replace("640x480", "480p")
     value = value.replace("microhd", " microhd")  # sometimes comes with the year
+    value = value.replace("dvdrip", " dvdrip")  # sometimes comes with the year
     keys = {'"': ' ', '*': ' ', '/': ' ', ':': ' ', '<': ' ', '>': ' ', '?': ' ', '|': ' ',
             "'": '', 'Of': 'of', 'De': 'de', '.': ' ', ')': ' ', '(': ' ', '[': ' ', ']': ' ', '-': ' '}
     for key in keys.keys():
@@ -171,6 +172,10 @@ def findLanguage(value=""):
     language = ""  # It is english or unknown
     if "spa" in value or "spanish" in value or "espanol" in value:
         language = " Español "
+    if "hindi" in value:
+        language = "Hindi"
+    if "castellano" in value:
+        language = "Castellano"
     return language
 
 
