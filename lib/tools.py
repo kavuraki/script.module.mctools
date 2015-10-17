@@ -65,6 +65,7 @@ def safeName(value):  # Make the name directory and filename safe
     value = value.replace("848x480", "480p")
     value = value.replace("704x480", "480p")
     value = value.replace("640x480", "480p")
+    value = value.replace("microhd", " microhd")  # sometimes comes with the year
     keys = {'"': ' ', '*': ' ', '/': ' ', ':': ' ', '<': ' ', '>': ' ', '?': ' ', '|': ' ',
             "'": '', 'Of': 'of', 'De': 'de', '.': ' ', ')': ' ', '(': ' ', '[': ' ', ']': ' ', '-': ' '}
     for key in keys.keys():
@@ -967,7 +968,12 @@ def getInfoLabels(infoTitle):
     if infoLabels.has_key("duration") and infoLabels["duration"] != '' and infoLabels["duration"] != 'None':
         duration = int(infoLabels["duration"])
     infoLabels['duration'] = duration
+    # force creation
     infoLabels['imdb_id'] = infoLabels.get('imdb_id', "")
+    infoLabels['cover_url'] = infoLabels.get("cover_url", settings.icon)
+    infoLabels['backdrop_url'] = infoLabels.get("backdrop_url", settings.fanart)
+    # add label
+    infoLabels['label'] = infoTitle["title"] + infoTitle.get("textQuality", "") + " " + infoTitle["language"]
     settings.debug(infoLabels)
     return infoLabels
 

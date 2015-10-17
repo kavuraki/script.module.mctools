@@ -1,3 +1,4 @@
+Version 0.0.18 improvement in InfoLabels and Microhd format
 Version 0.0.17 update script.module.metahandler 2.9
 Version 0.0.16 fix http in getLinks
 version 0.0.15 adding more keywords
