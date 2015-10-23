@@ -983,6 +983,15 @@ def getInfoLabels(infoTitle):
     return infoLabels
 
 
+def getInfoStream(infoTitle={}, infoLabels={}):
+    infoStream = {'width': infoTitle["width"],
+                  'height': infoTitle["height"],
+                  'aspect': infoTitle["width"]/infoTitle["height"],
+                  'duration': infoLabels["duration"],
+                  }
+    return infoStream
+
+
 ############  INTEGRATION   ###########################
 def integration(titles=[], id=[], magnets=[], typeList='', folder='', silence=False, message=''):
     messageType = {'MOVIE': settings.string(32031), 'SHOW': settings.string(32032), 'ANIME': settings.string(32043)}
