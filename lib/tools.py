@@ -195,7 +195,7 @@ def _cleanTitle(value=''):
     return value.strip()
 
 
-def formatTitle(value='', fileName=''):
+def formatTitle(value='', fileName='', typeVideo="MOVIE"):
     if fileName == '':
         fileName = value
     pos = value.rfind("/")
@@ -217,13 +217,22 @@ def formatTitle(value='', fileName=''):
                 'blurayrip', 'web', 'rip', 'ts screener', 'screener', 'cam', 'camrip', 'ts-screener', 'hdrip',
                 'brrip', 'blu', 'webrip', 'hdrip', 'bdrip', 'microhd', 'ita', 'eng', 'esp', "spanish espanol",
                 'castellano', '480p', 'bd', 'bdrip', 'hi10p', 'sub', 'x264', 'sbs', '3d', 'br', 'hdts', 'dts',
-                'dual audio', 'hevc', 'aac', 'batch', 'h264', 'gratis', 'descargar'
+                'dual audio', 'hevc', 'aac', 'batch', 'h264', 'gratis', 'descargar', 'hd', 'html'
                 ]
     sshow = None
     for format in formats:  # search if it is a show
         sshow = re.search(format, value)  # format shows
         if sshow is not None:
             break
+    if sshow is None and typeVideo != "MOVIE":
+        if typeVideo == 'SHOW':
+            value += ' s00e00'
+        if typeVideo == 'ANIME':
+            value += ' ep00'
+        for format in formats:  # search if it is a show
+            sshow = re.search(format, value)  # format shows
+            if sshow is not None:
+                break
     if sshow is None:
         # it is a movie
         value += ' 0000 '  # checking year
@@ -305,6 +314,7 @@ def formatTitle(value='', fileName=''):
         folder = title  # with year
         cleanTitle = _cleanTitle(title.replace(year, '').strip())  # without year
         title = folder + ' ' + seasonEpisode.upper()
+        title = title.replace('S00E00', '').replace('EP00', '')
         ttype = "SHOW"
         result = {'title': title, 'folder': folder, 'rest': rest, 'type': ttype, 'cleanTitle': cleanTitle,
                   'year': year, 'quality': quality, 'textQuality': textQuality, 'height': height(quality),
@@ -986,10 +996,33 @@ def getInfoLabels(infoTitle):
 def getInfoStream(infoTitle={}, infoLabels={}):
     infoStream = {'width': infoTitle["width"],
                   'height': infoTitle["height"],
-                  'aspect': infoTitle["width"]/infoTitle["height"],
+                  'aspect': infoTitle["width"] / infoTitle["height"],
                   'duration': infoLabels["duration"],
                   }
     return infoStream
+
+
+def getInfoSeason(infoLabels, seasons=[]):
+    from metahandler import metahandlers
+    metaget = metahandlers.MetaData()
+    images = metaget.get_seasons(tvshowtitle=infoLabels["title"], imdb_id=infoLabels["imdb_id"],
+                               seasons=seasons, overlay=6)
+    seasons = []
+    for image in images:
+        printer(image)
+        if image["cover_url"] == "":
+            image["cover_url"] = infoLabels["cover_url"]
+        if image["backdrop_url"] == "":
+            image["backdrop_url"] = infoLabels["backdrop_url"]
+        seasons.append(image)
+    return seasons
+
+
+def getInfoEpisode(infoLabels):
+    from metahandler import metahandlers
+    metaget = metahandlers.MetaData()
+    return metaget.get_episode_meta(tvshowtitle=infoLabels["title"], imdb_id=infoLabels["imdb_id"],
+                                    season=infoLabels["season"], episode=infoLabels["episode"])
 
 
 ############  INTEGRATION   ###########################

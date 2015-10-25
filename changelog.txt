@@ -1,3 +1,4 @@
+Version 1.1.2 Force Shows and Anime
 Version 1.1.1 infoStream
 Version 1.1.0 offshore problem
 Version 0.0.18 improvement in InfoLabels and Microhd format
