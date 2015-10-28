@@ -315,4 +315,4 @@ def formatTitle(value='', fileName='', typeVideo="MOVIE"):
 
 
 title = formatTitle("modern family 7x4")
-print title
+print title.title

@@ -181,13 +181,19 @@ def findLanguage(value=""):
 
 def exceptionsTitle(title=""):
     value = title + " "
-    if "csi " in value:
+    if "csi " in value and "ny" not in value and "miami" not in value and "cyber" not in value:
         title = title.replace("csi", "CSI Crime Scene Investigation")
+    if "juego de tronos" in value:
+        title = title.replace("juego de tronos", "Game of Thrones")
+    if "mentes criminales" in value:
+        title = title.replace("mentes criminales", "criminal minds")
+    if "les revenants" in value:
+        title = title.replace("les revenants", "The returned")
     return title
 
 
 def _cleanTitle(value=''):
-    keywordsCleanTitle = ['version', 'extendida', 'extended', 'edition', 'hd', 'unrated', 'version',
+    keywordsCleanTitle = ['version', 'extendida', 'extended', 'edition', 'hd', 'unrated', 'version', 'vose',
                           'special', 'edtion', 'uncensored', 'fixed', 'censurada', 'episode', 'ova', 'complete'
                           ]
     for keyword in keywordsCleanTitle:  # checking keywords
@@ -264,7 +270,7 @@ def formatTitle(value='', fileName='', typeVideo="MOVIE"):
         folder = title
         result = {'title': title, 'folder': folder, 'rest': rest.strip(), 'type': 'MOVIE', 'cleanTitle': cleanTitle,
                   'year': year, 'quality': quality, 'textQuality': textQuality, 'height': height(quality),
-                  "width": width(quality), 'language': language
+                  "width": width(quality), 'language': language, 'folderPath': settings.movieFolder
                   }
         return result
     else:
@@ -318,10 +324,11 @@ def formatTitle(value='', fileName='', typeVideo="MOVIE"):
         ttype = "SHOW"
         result = {'title': title, 'folder': folder, 'rest': rest, 'type': ttype, 'cleanTitle': cleanTitle,
                   'year': year, 'quality': quality, 'textQuality': textQuality, 'height': height(quality),
-                  "width": width(quality), "language": language,
+                  "width": width(quality), "language": language, 'folderPath': settings.showFolder
                   }
         if bool(re.search("EP[0-9]+", title)):
-            ttype = "ANIME"
+            result['type'] = "ANIME"
+            result['folderPath'] = settings.animeFolder
             result['season'] = 1
             result['episode'] = int(seasonEpisode.replace('ep', ''))
         else:
@@ -329,6 +336,42 @@ def formatTitle(value='', fileName='', typeVideo="MOVIE"):
             result['season'] = int(temp[0])
             result['episode'] = int(temp[1])
         return result
+
+
+class UnTaggle():
+    infoTitle = {}
+    infoLabels = {}
+    infoStream = {}
+    title = ""
+    fileName = ""
+    typeVideo = ""
+    label = ""
+    id = ""
+    info = {}
+    cover = ""
+    fanart = ""
+
+    def __init__(self, value='', fileName='', typeVideo="MOVIE"):
+        self.title = normalize(value)
+        self.fileName = fileName
+        self.infoTitle = formatTitle(value, fileName, typeVideo)  # organize the title information
+        self.typeVideo = self.infoTitle["type"]
+        if settings.value["infoLabels"] == "true":
+            self.infoLabels = getInfoLabels(self.infoTitle)  # using script.module.metahandlers to the the infoLabels
+            self.infoStream = getInfoStream(self.infoTitle, self.infoLabels)
+        settings.debug(self.infoTitle)
+        settings.debug(self.infoLabels)
+        settings.debug(self.infoStream)
+        self.info = self.infoLabels
+        self.label = self.infoTitle["title"] + self.infoTitle.get("textQuality", "") + " " + self.infoTitle["language"]
+        self.id = self.infoLabels.get("imdb_id", "")
+        if self.infoTitle["type"] != 'MOVIE' and settings.value[
+            "infoLabels"] == "true":  # difference with show and anime
+            self.info = getInfoEpisode(self.infoLabels)
+            self.id = self.infoLabels["tvdb_id"]
+            self.label += ' - ' + self.info['title'] if self.info['title'] != "" else ""
+        self.cover = self.info.get('cover_url', settings.icon)
+        self.fanart = self.info.get("backdrop_url", settings.fanart)
 
 
 ################################
@@ -1006,7 +1049,7 @@ def getInfoSeason(infoLabels, seasons=[]):
     from metahandler import metahandlers
     metaget = metahandlers.MetaData()
     images = metaget.get_seasons(tvshowtitle=infoLabels["title"], imdb_id=infoLabels["imdb_id"],
-                               seasons=seasons, overlay=6)
+                                 seasons=seasons, overlay=6)
     seasons = []
     for image in images:
         printer(image)
@@ -1026,15 +1069,11 @@ def getInfoEpisode(infoLabels):
 
 
 ############  INTEGRATION   ###########################
-def integration(titles=[], id=[], magnets=[], typeList='', folder='', silence=False, message=''):
-    messageType = {'MOVIE': settings.string(32031), 'SHOW': settings.string(32032), 'ANIME': settings.string(32043)}
+def integration(titles=[], id=[], magnets=[], typeList='', folder='', typeVideo=[],
+                silence=False, message='', channel=""):
+    messageType = {'MOVIE': settings.string(32031), 'SHOW': settings.string(32032), 'ANIME': settings.string(32043),
+                   '': 'Videos'}
     filters = Filtering()  # start filtering
-
-    if typeList == 'MOVIE':
-        filters.useMovie()
-    else:
-        filters.useTv()  # TV SHOWS and Anime
-    filters.information()
 
     total = len(titles)
     answer = True
@@ -1049,10 +1088,31 @@ def integration(titles=[], id=[], magnets=[], typeList='', folder='', silence=Fa
 
         cont = 0
         for cm, title in enumerate(titles):
-            info = formatTitle(title)
+            # typeVideo or typeList
+            if typeList == "":
+                typeListItem = typeVideo[cm]
+            else:
+                typeListItem = typeList
+            # folder
+            if folder == '':
+                if typeListItem == 'MOVIE':
+                    folder = settings.movieFolder
+                if typeListItem == 'SHOW':
+                    folder = settings.showFolder
+                if typeListItem == 'ANIME':
+                    folder = settings.animeFolder
+            # filters
+            if typeListItem == 'MOVIE':
+                filters.useMovie()
+            else:
+                filters.useTv()  # TV SHOWS and Anime
+            filters.information()
+            #formatTitle
+            info = formatTitle(title, typeVideo=typeListItem)
             info['folder'] = info['folder'][:100].strip()  # to limit the length of directory name
             check = True
             detailsTitle = ''
+
             if len(info['rest']) > 0:  # check for quality filtering
                 filters.title = info['title'] + ' ' + info['rest']
                 if filters.verify(filters.title, None):  # just check the quality no more
@@ -1071,21 +1131,24 @@ def integration(titles=[], id=[], magnets=[], typeList='', folder='', silence=Fa
                     os.makedirs(directory)
                 except:
                     pass
-
                 # Set-up the plugin
-                sleep(random.randrange(50, 1000, 50) / 1000)  # to be a smart spider
-                uri_string = quote_plus(getPlayableLink(uncodeName(normalize(magnets[cm]))))
-                if settings.value["plugin"] == 'Pulsar':
-                    link = 'plugin://plugin.video.pulsar/play?uri=%s' % uri_string
-                elif settings.value["plugin"] == 'KmediaTorrent':
-                    link = 'plugin://plugin.video.kmediatorrent/play/%s' % uri_string
-                elif settings.value["plugin"] == "Torrenter":
-                    link = 'plugin://plugin.video.torrenter/?action=playSTRM&url=' + uri_string + \
-                           '&not_download_only=True'
-                elif settings.value["plugin"] == "YATP":
-                    link = 'plugin://plugin.video.yatp/?action=play&torrent=' + uri_string
+                goodSpider()  # to be a smart spider
+                if channel == "":
+                    uri_string = quote_plus(getPlayableLink(uncodeName(normalize(magnets[cm]))))
+                    if settings.value["plugin"] == 'Pulsar':
+                        link = 'plugin://plugin.video.pulsar/play?uri=%s' % uri_string
+                    elif settings.value["plugin"] == 'KmediaTorrent':
+                        link = 'plugin://plugin.video.kmediatorrent/play/%s' % uri_string
+                    elif settings.value["plugin"] == "Torrenter":
+                        link = 'plugin://plugin.video.torrenter/?action=playSTRM&url=' + uri_string + \
+                               '&not_download_only=True'
+                    elif settings.value["plugin"] == "YATP":
+                        link = 'plugin://plugin.video.yatp/?action=play&torrent=' + uri_string
+                    else:
+                        link = 'plugin://plugin.video.xbmctorrent/play/%s' % uri_string
                 else:
-                    link = 'plugin://plugin.video.xbmctorrent/play/%s' % uri_string
+                    link = "plugin://plugin.video.pelisalacarta/?channel=%s&action=play_from_library&url=%s" % (
+                        channel, quote_plus(magnets[cm]))
                 settings.debug(link)
                 # start to create the strm file
                 filename = path.join(directory, name + ".strm")
@@ -1105,7 +1168,7 @@ def integration(titles=[], id=[], magnets=[], typeList='', folder='', silence=Fa
                     else:
                         settings.debug(".nfo existe!!!")
                     if codeMovie != "" and codeShow != "":  # Only it creates the nfo file if it is a IMDB number
-                        if typeList == "MOVIE":
+                        if typeListItem == "MOVIE":
                             with open(filename.replace(".strm", ".nfo"), "w") as text_file:  # create .nfo MOVIE
                                 text_file.write("http://www.imdb.com/title/%s/" % codeMovie)
                             settings.debug("imdb= " + codeMovie)
@@ -1118,7 +1181,7 @@ def integration(titles=[], id=[], magnets=[], typeList='', folder='', silence=Fa
                                                             % (directory, name))
                     if not silence and settings.pDialog.iscanceled(): break
                     if cont % 100 == 0: settings.notification(
-                        settings.string(32037) % (cont, messageType[typeList], message))
+                        settings.string(32037) % (cont, messageType[typeListItem], message))
                     settings.log(settings.string(32038) % filename)
                 if not silence and settings.pDialog.iscanceled(): break
         if not silence: settings.pDialog.close()
@@ -1126,17 +1189,17 @@ def integration(titles=[], id=[], magnets=[], typeList='', folder='', silence=Fa
         if cont > 0:  # There are files added
             if not xbmc.getCondVisibility('Library.IsScanningVideo'):
                 xbmc.executebuiltin('XBMC.UpdateLibrary(video)')  # update the library with the new information
-            settings.log(settings.string(32040) % (cont, messageType[typeList], message))
+            settings.log(settings.string(32040) % (cont, messageType[typeListItem], message))
             if not silence:
-                settings.dialog.ok(settings.name, settings.string(32040) % (cont, messageType[typeList], message))
+                settings.dialog.ok(settings.name, settings.string(32040) % (cont, messageType[typeListItem], message))
             else:
-                settings.notification(settings.string(32040) % (cont, messageType[typeList], message))
+                settings.notification(settings.string(32040) % (cont, messageType[typeListItem], message))
         else:
-            settings.log(settings.string(32041) % (messageType[typeList], message))
+            settings.log(settings.string(32041) % (messageType[typeListItem], message))
             if not silence:
-                settings.dialog.ok(settings.name, settings.string(32042) % (messageType[typeList], message))
+                settings.dialog.ok(settings.name, settings.string(32042) % (messageType[typeListItem], message))
             else:
-                settings.notification(settings.string(32042) % (messageType[typeList], message))
+                settings.notification(settings.string(32042) % (messageType[typeListItem], message))
                 # del filters
 
 

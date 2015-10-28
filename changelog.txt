@@ -1,3 +1,4 @@
+Version 1.1.3 UnTaggle
 Version 1.1.2 Force Shows and Anime
 Version 1.1.1 infoStream
 Version 1.1.0 offshore problem
