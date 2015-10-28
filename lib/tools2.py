@@ -72,7 +72,7 @@ def safeName(value):  # Make the name directory and filename safe
     for key in keys.keys():
         value = value.replace(key, keys[key])
     value = ' '.join(value.split())
-    return value.replace('S H I E L D', 'SHIELD').replace('C S I', 'CSI')
+    return value.replace('s h i e l d', 'SHIELD').replace('c s i', 'CSI')
 
 
 def checkQuality(text=""):
@@ -333,8 +333,13 @@ def formatTitle(value='', fileName='', typeVideo="MOVIE"):
             result['episode'] = int(seasonEpisode.replace('ep', ''))
         else:
             temp = (seasonEpisode.replace('s', '')).split('e')
-            result['season'] = int(temp[0])
-            result['episode'] = int(temp[1])
+            result['season'] = 0
+            result['episode'] = 0
+            try:
+                result['season'] = int(temp[0])
+                result['episode'] = int(temp[1])
+            except:
+                pass
         return result
 
 
@@ -368,8 +373,8 @@ class UnTaggle():
         if self.infoTitle["type"] != 'MOVIE' and settings.value[
             "infoLabels"] == "true":  # difference with show and anime
             self.info = getInfoEpisode(self.infoLabels)
-            self.id = self.infoLabels["tvdb_id"]
-            self.label += ' - ' + self.info['title'] if self.info['title'] != "" else ""
+            self.id = self.infoLabels.get("tvdb_id", "")
+            self.label += ' - ' + self.info.get('title', "") if self.info.get('title', "") != "" else ""
         self.cover = self.info.get('cover_url', settings.icon)
         self.fanart = self.info.get("backdrop_url", settings.fanart)
 
@@ -1064,8 +1069,13 @@ def getInfoSeason(infoLabels, seasons=[]):
 def getInfoEpisode(infoLabels):
     from metahandler import metahandlers
     metaget = metahandlers.MetaData()
-    return metaget.get_episode_meta(tvshowtitle=infoLabels["title"], imdb_id=infoLabels["imdb_id"],
-                                    season=infoLabels["season"], episode=infoLabels["episode"])
+    result = infoLabels
+    try:
+        result = metaget.get_episode_meta(tvshowtitle=infoLabels["title"], imdb_id=infoLabels["imdb_id"],
+                                          season=infoLabels["season"], episode=infoLabels["episode"])
+    except:
+        pass
+    return result
 
 
 ############  INTEGRATION   ###########################
@@ -1107,7 +1117,7 @@ def integration(titles=[], id=[], magnets=[], typeList='', folder='', typeVideo=
             else:
                 filters.useTv()  # TV SHOWS and Anime
             filters.information()
-            #formatTitle
+            # formatTitle
             info = formatTitle(title, typeVideo=typeListItem)
             info['folder'] = info['folder'][:100].strip()  # to limit the length of directory name
             check = True
