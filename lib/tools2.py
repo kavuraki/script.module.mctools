@@ -95,6 +95,7 @@ def checkQuality(text=""):
                 "BD/BRRip": ["bdrip", "brrip", "blu-ray", "bluray", "bdr", "bd5", "bd"],
                 "MicroHD": ["microhd"],
                 "FullHD": ["fullhd"],
+                "BR-Line": ["br line"],
                 }
     color = {"Cam": "FFF4AE00",
              "Telesync": "FFF4AE00",
@@ -114,6 +115,7 @@ def checkQuality(text=""):
              "BD/BRRip": "FFD35400",
              "MicroHD": "FFD35400",
              "FullHD": "FFD35400",
+             "BR-Line": "FFD35400",
              }
     quality = "480p"
     textQuality = ""
@@ -984,9 +986,13 @@ def getPlayableLink(page):
             if content != None and len(content) > 0:
                 result = content[0]
             else:
-                content = re.findall('https?:[^\'"\s<>\[\]]+torrent', data)
+                content = re.findall('/download\?token=[A-Za-z0-9%]+', data)
                 if content != None and len(content) > 0:
-                    result = content[0]
+                    result =  settings.value["urlAddress"] + content[0]
+                else:
+                    content = re.findall('https?:[^\'"\s<>\[\]]+torrent', data)
+                    if content != None and len(content) > 0:
+                        result = content[0]
         else:
             exceptionsList.add(re.search("^https?:\/\/(.*?)/", page).group(1))
             exceptionsList.save()
@@ -1071,8 +1077,9 @@ def getInfoEpisode(infoLabels):
     metaget = metahandlers.MetaData()
     result = infoLabels
     try:
-        result = metaget.get_episode_meta(tvshowtitle=infoLabels["title"], imdb_id=infoLabels["imdb_id"],
-                                          season=infoLabels["season"], episode=infoLabels["episode"])
+        if infoLabels["episode"] != 0:
+            result = metaget.get_episode_meta(tvshowtitle=infoLabels["title"], imdb_id=infoLabels["imdb_id"],
+                                              season=infoLabels["season"], episode=infoLabels["episode"])
     except:
         pass
     return result
