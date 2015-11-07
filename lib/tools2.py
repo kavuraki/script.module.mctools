@@ -541,11 +541,15 @@ class Settings:  # Read Configuration's Addon
 settings = Settings()
 browser = requests.Session()
 #openSSl support
-import pyOpenSSL
-import OpenSSL
-import requests.packages.urllib3.contrib.pyopenssl
-requests.packages.urllib3.contrib.pyopenssl.inject_into_urllib3()
-verify_ssl = True
+try:
+    import pyOpenSSL
+    import OpenSSL
+    import requests.packages.urllib3.contrib.pyopenssl
+    requests.packages.urllib3.contrib.pyopenssl.inject_into_urllib3()
+    verify_ssl = True
+except:
+    settings.log("No OpenSSL Support")
+    pass
 browser.headers[
     'User-agent'] = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36'
 
@@ -984,27 +988,27 @@ def getPlayableLink(page):
         # exceptions
         settings.debug(result)
         # download page
-        # try:
-        response = browser.get(page, verify=False)
-        data = normalize(response.text)
-        settings.debug(response.headers)
-        if 'text/html' in response.headers.get("content-type", ""):
-            content = re.findall('magnet:\?[^\'"\s<>\[\]]+', data)
-            if content != None and len(content) > 0:
-                result = content[0]
-            else:
-                content = re.findall('/download\?token=[A-Za-z0-9%]+', data)
+        try:
+            response = browser.get(page, verify=False)
+            data = normalize(response.text)
+            settings.debug(response.headers)
+            if 'text/html' in response.headers.get("content-type", ""):
+                content = re.findall('magnet:\?[^\'"\s<>\[\]]+', data)
                 if content != None and len(content) > 0:
-                    result =  settings.value["urlAddress"] + content[0]
+                    result = content[0]
                 else:
-                    content = re.findall('https?:[^\'"\s<>\[\]]+torrent', data)
+                    content = re.findall('/download\?token=[A-Za-z0-9%]+', data)
                     if content != None and len(content) > 0:
-                        result = content[0]
-        else:
-            exceptionsList.add(re.search("^https?:\/\/(.*?)/", page).group(1))
-            exceptionsList.save()
-            # except:
-            #     pass
+                        result =  settings.value["urlAddress"] + content[0]
+                    else:
+                        content = re.findall('https?:[^\'"\s<>\[\]]+torrent', data)
+                        if content != None and len(content) > 0:
+                            result = content[0]
+            else:
+                exceptionsList.add(re.search("^https?:\/\/(.*?)/", page).group(1))
+                exceptionsList.save()
+        except:
+            pass
     settings.debug(result)
     return result
 
