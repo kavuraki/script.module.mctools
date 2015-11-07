@@ -14,7 +14,8 @@ from os import path
 from urllib import quote_plus
 from time import sleep
 from ast import literal_eval
-import random
+
+
 
 
 ################################
@@ -210,7 +211,7 @@ def formatTitle(value='', fileName='', typeVideo="MOVIE"):
     value = value if pos < 0 else value[pos:]
     value = safeName(value).lower() + ' '
     fileName = safeName(fileName).lower() + ' '
-    quality, textQuality = checkQuality(fileName)  # find quality
+    quality, textQuality = checkQuality(value + ' ' + fileName)  # find quality
     language = findLanguage(value)  # find language
     formats = [' ep[0-9]+', ' s[0-9]+e[0-9]+', ' s[0-9]+ e[0-9]+', ' [0-9]+x[0-9]+',
                ' [0-9][0-9][0-9][0-9] [0-9][0-9] [0-9][0-9]',
@@ -539,6 +540,12 @@ class Settings:  # Read Configuration's Addon
 # Create settings object and browser to be used in the other tool's functions
 settings = Settings()
 browser = requests.Session()
+#openSSl support
+import pyOpenSSL
+import OpenSSL
+import requests.packages.urllib3.contrib.pyopenssl
+requests.packages.urllib3.contrib.pyopenssl.inject_into_urllib3()
+verify_ssl = True
 browser.headers[
     'User-agent'] = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36'
 

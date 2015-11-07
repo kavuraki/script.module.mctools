@@ -1,8 +1,9 @@
 # coding: utf-8
-import re
+
 ################################
 #### SCRAPER TITLES ############
 ################################
+import re
 def normalize(name, onlyDecode=False):
     from unicodedata import normalize
     import types
@@ -55,7 +56,7 @@ def safeName(value):  # Make the name directory and filename safe
     for key in keys.keys():
         value = value.replace(key, keys[key])
     value = ' '.join(value.split())
-    return value.replace('S H I E L D', 'SHIELD').replace('C S I', 'CSI')
+    return value.replace('s h i e l d', 'SHIELD').replace('c s i', 'CSI')
 
 
 def checkQuality(text=""):
@@ -78,6 +79,7 @@ def checkQuality(text=""):
                 "BD/BRRip": ["bdrip", "brrip", "blu-ray", "bluray", "bdr", "bd5", "bd"],
                 "MicroHD": ["microhd"],
                 "FullHD": ["fullhd"],
+                "BR-Line": ["br line"],
                 }
     color = {"Cam": "FFF4AE00",
              "Telesync": "FFF4AE00",
@@ -97,6 +99,7 @@ def checkQuality(text=""):
              "BD/BRRip": "FFD35400",
              "MicroHD": "FFD35400",
              "FullHD": "FFD35400",
+             "BR-Line": "FFD35400",
              }
     quality = "480p"
     textQuality = ""
@@ -164,13 +167,19 @@ def findLanguage(value=""):
 
 def exceptionsTitle(title=""):
     value = title + " "
-    if "csi " in value:
+    if "csi " in value and "ny" not in value and "miami" not in value and "cyber" not in value:
         title = title.replace("csi", "CSI Crime Scene Investigation")
+    if "juego de tronos" in value:
+        title = title.replace("juego de tronos", "Game of Thrones")
+    if "mentes criminales" in value:
+        title = title.replace("mentes criminales", "criminal minds")
+    if "les revenants" in value:
+        title = title.replace("les revenants", "The returned")
     return title
 
 
 def _cleanTitle(value=''):
-    keywordsCleanTitle = ['version', 'extendida', 'extended', 'edition', 'hd', 'unrated', 'version',
+    keywordsCleanTitle = ['version', 'extendida', 'extended', 'edition', 'hd', 'unrated', 'version', 'vose',
                           'special', 'edtion', 'uncensored', 'fixed', 'censurada', 'episode', 'ova', 'complete'
                           ]
     for keyword in keywordsCleanTitle:  # checking keywords
@@ -185,7 +194,7 @@ def formatTitle(value='', fileName='', typeVideo="MOVIE"):
     value = value if pos < 0 else value[pos:]
     value = safeName(value).lower() + ' '
     fileName = safeName(fileName).lower() + ' '
-    quality, textQuality = checkQuality(fileName)  # find quality
+    quality, textQuality = checkQuality(value + ' ' + fileName)  # find quality
     language = findLanguage(value)  # find language
     formats = [' ep[0-9]+', ' s[0-9]+e[0-9]+', ' s[0-9]+ e[0-9]+', ' [0-9]+x[0-9]+',
                ' [0-9][0-9][0-9][0-9] [0-9][0-9] [0-9][0-9]',
@@ -200,22 +209,22 @@ def formatTitle(value='', fileName='', typeVideo="MOVIE"):
                 'blurayrip', 'web', 'rip', 'ts screener', 'screener', 'cam', 'camrip', 'ts-screener', 'hdrip',
                 'brrip', 'blu', 'webrip', 'hdrip', 'bdrip', 'microhd', 'ita', 'eng', 'esp', "spanish espanol",
                 'castellano', '480p', 'bd', 'bdrip', 'hi10p', 'sub', 'x264', 'sbs', '3d', 'br', 'hdts', 'dts',
-                'dual audio', 'hevc', 'aac', 'batch', 'h264', 'gratis', 'descargar', 'hd',  'html'
+                'dual audio', 'hevc', 'aac', 'batch', 'h264', 'gratis', 'descargar', 'hd', 'html'
                 ]
     sshow = None
     for format in formats:  # search if it is a show
         sshow = re.search(format, value)  # format shows
         if sshow is not None:
             break
-    if sshow is None and typeVideo!="MOVIE":
-            if typeVideo == 'SHOW':
-                value += ' s00e00'
-            if typeVideo == 'ANIME':
-                value += ' ep00'
-            for format in formats:  # search if it is a show
-                sshow = re.search(format, value)  # format shows
-                if sshow is not None:
-                    break
+    if sshow is None and typeVideo != "MOVIE":
+        if typeVideo == 'SHOW':
+            value += ' s00e00'
+        if typeVideo == 'ANIME':
+            value += ' ep00'
+        for format in formats:  # search if it is a show
+            sshow = re.search(format, value)  # format shows
+            if sshow is not None:
+                break
     if sshow is None:
         # it is a movie
         value += ' 0000 '  # checking year
@@ -247,7 +256,7 @@ def formatTitle(value='', fileName='', typeVideo="MOVIE"):
         folder = title
         result = {'title': title, 'folder': folder, 'rest': rest.strip(), 'type': 'MOVIE', 'cleanTitle': cleanTitle,
                   'year': year, 'quality': quality, 'textQuality': textQuality, 'height': height(quality),
-                  "width": width(quality), 'language': language
+                  "width": width(quality), 'language': language, #'folderPath': settings.movieFolder
                   }
         return result
     else:
@@ -301,18 +310,22 @@ def formatTitle(value='', fileName='', typeVideo="MOVIE"):
         ttype = "SHOW"
         result = {'title': title, 'folder': folder, 'rest': rest, 'type': ttype, 'cleanTitle': cleanTitle,
                   'year': year, 'quality': quality, 'textQuality': textQuality, 'height': height(quality),
-                  "width": width(quality), "language": language,
+                  "width": width(quality), "language": language, #'folderPath': settings.showFolder
                   }
         if bool(re.search("EP[0-9]+", title)):
-            ttype = "ANIME"
+            result['type'] = "ANIME"
+            #result['folderPath'] = settings.animeFolder
             result['season'] = 1
             result['episode'] = int(seasonEpisode.replace('ep', ''))
         else:
             temp = (seasonEpisode.replace('s', '')).split('e')
-            result['season'] = int(temp[0])
-            result['episode'] = int(temp[1])
+            result['season'] = 0
+            result['episode'] = 0
+            try:
+                result['season'] = int(temp[0])
+                result['episode'] = int(temp[1])
+            except:
+                pass
         return result
 
-
-title = formatTitle("modern family 7x4")
-print title.title
+    print formatTitle('inside out 720p')
