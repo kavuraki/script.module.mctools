@@ -540,16 +540,6 @@ class Settings:  # Read Configuration's Addon
 # Create settings object and browser to be used in the other tool's functions
 settings = Settings()
 browser = requests.Session()
-#openSSl support
-try:
-    import pyOpenSSL
-    import OpenSSL
-    import requests.packages.urllib3.contrib.pyopenssl
-    requests.packages.urllib3.contrib.pyopenssl.inject_into_urllib3()
-    verify_ssl = True
-except:
-    settings.log("No OpenSSL Support")
-    pass
 browser.headers[
     'User-agent'] = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36'
 
