@@ -16,8 +16,6 @@ from time import sleep
 from ast import literal_eval
 
 
-
-
 ################################
 #### SCRAPER TITLES ############
 ################################
@@ -373,7 +371,7 @@ class UnTaggle():
         self.info = self.infoLabels
         self.label = self.infoTitle["title"] + self.infoTitle.get("textQuality", "") + " " + self.infoTitle["language"]
         self.id = self.infoLabels.get("imdb_id", "")
-        if self.infoTitle["type"] != 'MOVIE' and settings.value[
+        if self.infoTitle["type"] == 'SHOW' and settings.value[
             "infoLabels"] == "true":  # difference with show and anime
             self.info = getInfoEpisode(self.infoLabels)
             self.id = self.infoLabels.get("tvdb_id", "")
@@ -989,7 +987,7 @@ def getPlayableLink(page):
                 else:
                     content = re.findall('/download\?token=[A-Za-z0-9%]+', data)
                     if content != None and len(content) > 0:
-                        result =  settings.value["urlAddress"] + content[0]
+                        result = settings.value["urlAddress"] + content[0]
                     else:
                         content = re.findall('https?:[^\'"\s<>\[\]]+torrent', data)
                         if content != None and len(content) > 0:
