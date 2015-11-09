@@ -535,9 +535,28 @@ class Settings:  # Read Configuration's Addon
         return self.settings.getLocalizedString(id)
 
 
+#############################################
+##############Browser HTTPS support##########
+#############################################
+
+class Response:
+    def __init__(self, text, status_code):
+        self.text = text
+        self.status_code = status_code
+
+
+class Browser:
+    def get(self, url=''):
+        import httplib2
+        h = httplib2.Http(disable_ssl_certificate_validation=True)
+        resp, content = h.request(url, "GET")
+        return Response(content, resp['status'])
+
+
 # Create settings object and browser to be used in the other tool's functions
 settings = Settings()
 browser = requests.Session()
+browser2 = Browser()
 browser.headers[
     'User-agent'] = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36'
 
