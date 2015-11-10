@@ -121,7 +121,6 @@ def checkQuality(text=""):
     for key in keyWords:
         for keyWord in keyWords[key]:
             if ' ' + keyWord + ' ' in ' ' + text + ' ':
-                print keyWord
                 quality = "480p"
                 textQuality += " [COLOR %s][%s][/COLOR]" % (color[key], key)
 
@@ -542,16 +541,30 @@ class Settings:  # Read Configuration's Addon
 class Response:
     def __init__(self, text, status_code):
         self.text = text
-        self.status_code = status_code
+        self.status_code = int(status_code)
 
 
 class Browser:
-    def get(self, url=''):
+    headers = {}
+    cookies = {}
+    def __init__(self):
+        self.headers['User-agent'] = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36'
+
+    def get(self, url='', cookies={}):
         import httplib2
+        from urllib import urlencode
         h = httplib2.Http(disable_ssl_certificate_validation=True)
-        resp, content = h.request(url, "GET")
+        resp, content = h.request(url, method="GET", headers=self.headers, body=urlencode(cookies))
+        self.headers['Cookie'] = resp['set-cookie']
         return Response(content, resp['status'])
 
+    def post(self, url='', data={}):
+        from urllib import urlencode
+        import httplib2
+        h = httplib2.Http(disable_ssl_certificate_validation=True)
+        resp, content = h.request(url, method="POST", headers=self.headers, body=urlencode(data))
+        self.headers['Cookie'] = resp['set-cookie']
+        return Response(content, resp['status'])
 
 # Create settings object and browser to be used in the other tool's functions
 settings = Settings()
@@ -1081,7 +1094,6 @@ def getInfoSeason(infoLabels, seasons=[]):
                                  seasons=seasons, overlay=6)
     seasons = []
     for image in images:
-        printer(image)
         if image["cover_url"] == "":
             image["cover_url"] = infoLabels["cover_url"]
         if image["backdrop_url"] == "":
