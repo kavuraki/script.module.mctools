@@ -491,7 +491,7 @@ settings = Settings()
 browser = requests.Session()
 browser.headers[
     'User-agent'] = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36'
-
+browser.headers['Accept-Language']='en'
 
 class TextViewer_Dialog(xbmcgui.WindowXMLDialog):  # taking from script.toolbox
     ACTION_PREVIOUS_MENU = [9, 92, 10]
