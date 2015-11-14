@@ -56,7 +56,8 @@ def safeName(value):  # Make the name directory and filename safe
     # check for anime
     value = re.sub('- ([0-9][0-9][0-9][0-9]) ', ' \g<1>', value + " ")
     value = re.sub('- ([0-9]+) ', '- EP\g<1>', value + " ")
-    value = value.lower().replace(" episode ", " - EP")
+    if 'season' not in value.lower():
+        value = value.lower().replace(" episode ", " - EP")
     # check for qualities
     value = value.replace("1920x1080", "1080p")
     value = value.replace("1280x720", "720p")
@@ -212,7 +213,8 @@ def formatTitle(value='', fileName='', typeVideo="MOVIE"):
     language = findLanguage(value)  # find language
     formats = [' ep[0-9]+', ' s[0-9]+e[0-9]+', ' s[0-9]+ e[0-9]+', ' [0-9]+x[0-9]+',
                ' [0-9][0-9][0-9][0-9] [0-9][0-9] [0-9][0-9]',
-               ' [0-9][0-9] [0-9][0-9] [0-9][0-9]', ' season [0-9]+', ' season[0-9]+', ' s[0-9][0-9]',
+               ' [0-9][0-9] [0-9][0-9] [0-9][0-9]', ' season [0-9]+ episode [0-9]+',
+               ' season [0-9]+', ' season[0-9]+', ' s[0-9][0-9]',
                ' temporada [0-9]+ capitulo [0-9]+', ' temporada[0-9]+', ' temporada [0-9]+',
                ' seizoen [0-9]+ afl [0-9]+',
                ' temp [0-9]+ cap [0-9]+', ' temp[0-9]+ cap[0-9]+',
@@ -283,6 +285,7 @@ def formatTitle(value='', fileName='', typeVideo="MOVIE"):
         title = value[:value.find(seasonEpisode)].strip()
         title = title.strip()
         seasonEpisode = seasonEpisode.replace('temporada ', 's').replace(' capitulo ', 'e')
+        seasonEpisode = seasonEpisode.replace('season ', 's').replace(' episode ', 'e')
         seasonEpisode = seasonEpisode.replace('temp ', 's').replace(' cap ', 'e')
         seasonEpisode = seasonEpisode.replace('seizoen ', 's').replace(' afl ', 'e')
 
@@ -355,6 +358,8 @@ class UnTaggle():
     info = {}
     cover = ""
     fanart = ""
+    season = ""
+    episode = ""
 
     def __init__(self, value='', fileName='', typeVideo="MOVIE"):
         self.title = normalize(value)
@@ -375,6 +380,8 @@ class UnTaggle():
             self.info = getInfoEpisode(self.infoLabels)
             self.id = self.infoLabels.get("tvdb_id", "")
             self.label += ' - ' + self.info.get('title', "") if self.info.get('title', "") != "" else ""
+            self.season = self.infoTitle.get("season", "")
+            self.episode = self.infoTitle.get("episode", "")
         self.cover = self.info.get('cover_url', settings.icon)
         self.fanart = self.info.get("backdrop_url", settings.fanart)
 

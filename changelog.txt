@@ -1,3 +1,4 @@
+Version 1.2.3 new FormatTitle
 Version 1.2.2 Accept-Content in ENglish
 Version 1.2.1 support Post in httplib2
 Version 1.2.0 support HTTPS with httplib2

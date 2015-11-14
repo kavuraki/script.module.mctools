@@ -1152,7 +1152,7 @@ def subscription(titles=[], id=[], typeList='', folder='', silence=False, messag
 
     if answer:  # it will integrate the filename list to the local library
         if not silence:
-            settings.pDialog.create(settings.name, settings.string(32034) % (messageType[typeList], message))
+            settings.pDialog.create(settings.name, "%s %s" % (messageType[typeList], message))
         else:
             settings.notification(settings.string(32034) % (messageType[typeList], message))
         # Open Database
