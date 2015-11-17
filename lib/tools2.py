@@ -361,10 +361,13 @@ class UnTaggle():
     season = ""
     episode = ""
 
-    def __init__(self, value='', fileName='', typeVideo="MOVIE"):
+    def __init__(self, value='', fileName='', typeVideo="MOVIE", useUrl=True):
         self.title = normalize(value)
         self.fileName = fileName
-        self.infoTitle = formatTitle(value, fileName, typeVideo)  # organize the title information
+        if useUrl:
+            self.infoTitle = formatTitle(value, fileName, typeVideo)  # organize the title information
+        else:
+            self.infoTitle = formatTitle(value, '', typeVideo)  # organize the title information
         self.typeVideo = self.infoTitle["type"]
         if settings.value["infoLabels"] == "true":
             self.infoLabels = getInfoLabels(self.infoTitle)  # using script.module.metahandlers to the the infoLabels
@@ -554,8 +557,10 @@ class Response:
 class Browser:
     headers = {}
     cookies = {}
+
     def __init__(self):
-        self.headers['User-agent'] = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36'
+        self.headers[
+            'User-agent'] = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36'
 
     def get(self, url='', cookies={}):
         import httplib2
@@ -573,13 +578,15 @@ class Browser:
         self.headers['Cookie'] = resp['set-cookie']
         return Response(content, resp['status'])
 
+
 # Create settings object and browser to be used in the other tool's functions
 settings = Settings()
 browser = requests.Session()
 browser2 = Browser()
 browser.headers[
     'User-agent'] = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36'
-browser.headers['Accept-Language']='en'
+browser.headers['Accept-Language'] = 'en'
+
 
 class TextViewer_Dialog(xbmcgui.WindowXMLDialog):  # taking from script.toolbox
     ACTION_PREVIOUS_MENU = [9, 92, 10]
@@ -1122,6 +1129,48 @@ def getInfoEpisode(infoLabels):
     return result
 
 
+#  Search if a video is already in Kodi Database
+def existInKodiLibrary(id, season="1", episode="1"):
+    import json
+
+    result = False
+    if 'tt' in id:
+        # Movies
+        query = {
+            'jsonrpc': '2.0',
+            'id': 0,
+            'method': 'VideoLibrary.GetMovies',
+            'params': {
+                'properties': ['imdbnumber', 'file']
+            }
+        }
+        response = json.loads(xbmc.executeJSONRPC(json.dumps(query)))
+        movieDict = dict(
+            (movie['imdbnumber'], movie['file'])
+            for movie in response.get('result', {}).get('movies', [])
+        )
+        if movieDict.has_key(id):
+            result = True
+    else:
+        # TV Shows
+        query = {
+            'jsonrpc': '2.0',
+            'id': 0,
+            'method': 'VideoLibrary.GetTVShows',
+            'params': {
+                'properties': ['imdbnumber', 'file', 'season', 'episode']
+            }
+        }
+        response = json.loads(xbmc.executeJSONRPC(json.dumps(query)))
+        showDict = dict(
+            (show['imdbnumber'] + "-" + str(show['season']) + "-" + str(show['episode']), show['file'])
+            for show in response.get('result', {}).get('tvshows', [])
+        )
+        if showDict.has_key(id + "-" + str(season) + "-" + str(episode)):
+            result = True
+    return result
+
+
 ############  INTEGRATION   ###########################
 def integration(titles=[], id=[], magnets=[], typeList='', folder='', typeVideo=[],
                 silence=False, message='', channel=""):
@@ -1206,20 +1255,26 @@ def integration(titles=[], id=[], magnets=[], typeList='', folder='', typeVideo=
                 settings.debug(link)
                 # start to create the strm file
                 filename = path.join(directory, name + ".strm")
-                if not os.path.isfile(filename) or settings.value["overwrite"] == 'true':
+                # Find the code for the video
+                codeMovie = ""
+                codeShow = ""
+                infoLabels = getInfoLabels(info)
+                if len(id) > 0 and id[cm] != "":
+                    codeMovie = codeShow = id[cm]
+                else:
+                    codeMovie = infoLabels.get("imdb_id", "")  # it tries to retrieve the IMDB number from title
+                    codeShow = infoLabels.get("tvdb_id", "")  # it tries to retrieve the TVDB number from title
+                # Write the strm file
+                isAlreadyAdded = False
+                if typeListItem == "MOVIE":
+                    isAlreadyAdded = existInKodiLibrary(codeMovie)
+                else:
+                    isAlreadyAdded = existInKodiLibrary(codeShow, infoLabels['season'], infoLabels['episode'])
+                if (not os.path.isfile(filename) and not isAlreadyAdded) or settings.value["overwrite"] == 'true':
                     cont += 1  # add new file's count
                     with open(filename, "w") as text_file:  # create .strm
                         text_file.write(link)
-                    codeMovie = ""
-                    codeShow = ""
-                    if not os.path.isfile("*.nfo"):
-                        if len(id) > 0 and id[cm] != "":
-                            codeMovie = codeShow = id[cm]
-                        else:
-                            infoLabels = getInfoLabels(info)
-                            codeMovie = infoLabels.get("imdb_id", "")  # it tries to retrieve the IMDB number from title
-                            codeShow = infoLabels.get("tvdb_id", "")  # it tries to retrieve the TVDB number from title
-                    else:
+                    if os.path.isfile("*.nfo"):
                         settings.debug(".nfo existe!!!")
                     if codeMovie != "" and codeShow != "":  # Only it creates the nfo file if it is a IMDB number
                         if typeListItem == "MOVIE":
@@ -1237,6 +1292,8 @@ def integration(titles=[], id=[], magnets=[], typeList='', folder='', typeVideo=
                     if cont % 100 == 0: settings.notification(
                         settings.string(32037) % (cont, messageType[typeListItem], message))
                     settings.log(settings.string(32038) % filename)
+                elif isAlreadyAdded:
+                    settings.log("%s is already in the library" % name)
                 if not silence and settings.pDialog.iscanceled(): break
         if not silence: settings.pDialog.close()
 
@@ -1312,8 +1369,10 @@ def subscription(titles=[], id=[], typeList='', folder='', silence=False, messag
                 data['type'] = typeList
                 data['season'] = 0
                 data['episode'] = 0
+
             # start to create strm files
-            if typeList == 'MOVIE' and data['type'] == 'MOVIE' and data['episode'] == 0 and data['ID'] is not None:
+            if typeList == 'MOVIE' and data['type'] == 'MOVIE' and data['episode'] == 0 and data[
+                                        'ID'] is not None and not existInKodiLibrary(data['ID']):
                 cont += 1
                 # Try to create the directory if it doesn't exist
                 directory = path.join(folder, info['folder'])
@@ -1359,19 +1418,20 @@ def subscription(titles=[], id=[], typeList='', folder='', silence=False, messag
                     text_file.write("http://thetvdb.com/?tab=series&id=%s" % data['ID'])
                 for season in range(max(data['season'], data['firstSeason']), data['lastSeason'] + 1):
                     for episode in range(data['episode'] + 1, data['lastEpisode'][season] + 1):
-                        cont += 1
-                        link = 'plugin://plugin.video.pulsar/show/%s/season/%s/episode/%s/%s' % (
-                            data['ID'], season, episode, settings.value["action"])
-                        if not silence: settings.pDialog.update(int(float(cm) / total * 100),
-                                                                "%s%s S%02dE%02d.strm" % (
-                                                                    directory, item, season, episode))
-                        if cont % 100 == 0: settings.notification(
-                            settings.string(32037) % (cont, messageType[typeList], message))
-                        filename = path.join(directory, item + " S%02dE%02d.strm" % (season, episode))
-                        with open(filename, "w") as text_file:  # create .strm
-                            text_file.write(link)
-                            settings.log(settings.string(32038) % filename)
-                        if not silence and settings.pDialog.iscanceled(): break
+                        if not existInKodiLibrary(data['ID'], str(season), str(episode)):
+                            cont += 1
+                            link = 'plugin://plugin.video.pulsar/show/%s/season/%s/episode/%s/%s' % (
+                                data['ID'], season, episode, settings.value["action"])
+                            if not silence: settings.pDialog.update(int(float(cm) / total * 100),
+                                                                    "%s%s S%02dE%02d.strm" % (
+                                                                        directory, item, season, episode))
+                            if cont % 100 == 0: settings.notification(
+                                settings.string(32037) % (cont, messageType[typeList], message))
+                            filename = path.join(directory, item + " S%02dE%02d.strm" % (season, episode))
+                            with open(filename, "w") as text_file:  # create .strm
+                                text_file.write(link)
+                                settings.log(settings.string(32038) % filename)
+                            if not silence and settings.pDialog.iscanceled(): break
                     data['episode'] = 0  # change to new season and reset the episode to 1
                 if not silence and settings.pDialog.iscanceled(): break
                 data['season'] = data['lastSeason']
