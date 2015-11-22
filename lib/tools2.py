@@ -68,7 +68,7 @@ def safeName(value):  # Make the name directory and filename safe
     value = value.replace("640x480", "480p")
     value = value.replace("microhd", " microhd")  # sometimes comes with the year
     value = value.replace("dvdrip", " dvdrip")  # sometimes comes with the year
-    keys = {'"': ' ', '*': ' ', '/': ' ', ':': ' ', '<': ' ', '>': ' ', '?': ' ', '|': ' ',
+    keys = {'"': ' ', '*': ' ', '/': ' ', ':': ' ', '<': ' ', '>': ' ', '?': ' ', '|': ' ', '~': ' ',
             "'": '', 'Of': 'of', 'De': 'de', '.': ' ', ')': ' ', '(': ' ', '[': ' ', ']': ' ', '-': ' '}
     for key in keys.keys():
         value = value.replace(key, keys[key])
@@ -88,12 +88,13 @@ def checkQuality(text=""):
                 "R5": ["r5", "r5.line", "r5 ac3 5 1 hq"],
                 "DVD-Rip": ["dvdrip", "dvd-rip"],
                 "DVD-R": ["dvdr", "dvd-full", "full-rip", "iso rip", "lossless rip", "untouched rip", "dvd-5 dvd-9"],
-                "HDTV": ["dsr", "dsrip", "dthrip", "dvbrip", "hdtv", "pdtv", "tvrip", "hdtvrip", "hdrip"],
+                "HDTV": ["dsr", "dsrip", "dthrip", "dvbrip", "hdtv", "pdtv", "tvrip", "hdtvrip", "hdrip", "hdit",
+                         "high definition"],
                 "VODRip": ["vodrip", "vodr"],
                 "WEB-DL": ["webdl", "web dl", "web-dl"],
                 "WEBRip": ["web-rip", "webrip", "web rip"],
                 "WEBCap": ["web-cap", "webcap", "web cap"],
-                "BD/BRRip": ["bdrip", "brrip", "blu-ray", "bluray", "bdr", "bd5", "bd"],
+                "BD/BRRip": ["bdrip", "brrip", "blu-ray", "bluray", "bdr", "bd5", "bd", "blurip"],
                 "MicroHD": ["microhd"],
                 "FullHD": ["fullhd"],
                 "BR-Line": ["br line"],
@@ -178,6 +179,10 @@ def findLanguage(value=""):
         language = "Hindi"
     if "castellano" in value:
         language = "Castellano"
+    if "french" in value or 'francais' in value:
+        language = "French"
+    if "german" in value:
+        language = "German"
     return language
 
 
@@ -226,7 +231,8 @@ def formatTitle(value='', fileName='', typeVideo="MOVIE"):
                 'blurayrip', 'web', 'rip', 'ts screener', 'screener', 'cam', 'camrip', 'ts-screener', 'hdrip',
                 'brrip', 'blu', 'webrip', 'hdrip', 'bdrip', 'microhd', 'ita', 'eng', 'esp', "spanish espanol",
                 'castellano', '480p', 'bd', 'bdrip', 'hi10p', 'sub', 'x264', 'sbs', '3d', 'br', 'hdts', 'dts',
-                'dual audio', 'hevc', 'aac', 'batch', 'h264', 'gratis', 'descargar', 'hd', 'html'
+                'dual audio', 'hevc', 'aac', 'batch', 'h264', 'gratis', 'descargar', 'hd', 'html', 'hdit',
+                'blurip', 'high definition', 'german'
                 ]
     sshow = None
     for format in formats:  # search if it is a show
@@ -1379,7 +1385,7 @@ def subscription(titles=[], id=[], typeList='', folder='', silence=False, messag
 
             # start to create strm files
             if typeList == 'MOVIE' and data['type'] == 'MOVIE' and data['episode'] == 0 and data[
-                                        'ID'] is not None and not existInKodiLibrary(data['ID']):
+                'ID'] is not None and not existInKodiLibrary(data['ID']):
                 cont += 1
                 # Try to create the directory if it doesn't exist
                 directory = path.join(folder, info['folder'])
