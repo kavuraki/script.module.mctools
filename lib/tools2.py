@@ -98,6 +98,14 @@ def checkQuality(text=""):
                 "MicroHD": ["microhd"],
                 "FullHD": ["fullhd"],
                 "BR-Line": ["br line"],
+                # video formats
+                "x264": ["x264", "x 264"],
+                "x265 HEVC": ["x265 hevc", "x265", "x 265", "hevc"],
+                # audio
+                "DD5.1": ["dd5 1", "dd51", "dual audio 5"],
+                "AC3 5.1": ["ac3"],
+                "ACC": ["acc"],
+                "DUAL AUDIO": ["dual", "dual audio"],
                 }
     color = {"Cam": "FFF4AE00",
              "Telesync": "FFF4AE00",
@@ -118,6 +126,14 @@ def checkQuality(text=""):
              "MicroHD": "FFD35400",
              "FullHD": "FFD35400",
              "BR-Line": "FFD35400",
+             # video formats
+             "x264": "FFFB0C06",
+             "x265 HEVC": "FFFB0C06",
+             # audio
+             "DD5.1": "FF089DE3",
+             "AC3 5.1": "FF089DE3",
+             "ACC": "FF089DE3",
+             "DUAL AUDIO": "FF089DE3",
              }
     quality = "480p"
     textQuality = ""
