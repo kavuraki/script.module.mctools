@@ -14,6 +14,7 @@ from os import path
 from urllib import quote_plus
 from time import sleep
 from ast import literal_eval
+import xbmcplugin
 
 
 ################################
@@ -382,7 +383,7 @@ class UnTaggle():
             "infoLabels"] == "true":  # difference with show and anime
             self.info = getInfoEpisode(self.infoLabels)
             self.id = self.infoLabels.get("tvdb_id", "")
-            self.label += ' - ' + self.info.get('title', "") if self.info.get('title', "") != "" else ""
+            self.label += ' - ' + normalize(self.info.get('title', "")) if self.info.get('title', "") != "" else ""
             self.season = self.infoTitle.get("season", "")
             self.episode = self.infoTitle.get("episode", "")
         self.cover = self.info.get('cover_url', settings.icon)
@@ -425,19 +426,25 @@ class Storage():
         except OSError:
             pass
 
-    def add(self, key="", info=""):  # add element
+    def add(self, key="", info="", safe=True):  # add element
         if self.type == "list" and key not in self.database:
             self.database.append(key)
         elif self.type == "dict":
-            keySafe = formatTitle(key)
-            self.database[keySafe['folder']] = info
+            if safe:
+                keySafe = formatTitle(key)
+                self.database[keySafe['folder']] = info
+            else:
+                self.database[key] = info
 
-    def remove(self, key=""):  # remove element
+    def remove(self, key="", safe=True):  # remove element
         if self.type == "list":
             self.database.remove(key)
         elif self.type == "dict":
-            keySafe = formatTitle(key)
-            del self.database[keySafe['folder']]
+            if safe:
+                keySafe = formatTitle(key)
+                del self.database[keySafe['folder']]
+            else:
+                del self.database[key]
 
     def save(self):  # save the database
         if self.type == "list":

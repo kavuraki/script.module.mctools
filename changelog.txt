@@ -1,3 +1,4 @@
+Version 1.2.5 adding SAFE parameters to storage
 Version 1.2.4 Adding Support to not duplicated items in the library
 Version 1.2.3 new FormatTitle
 Version 1.2.2 Accept-Content in ENglish
