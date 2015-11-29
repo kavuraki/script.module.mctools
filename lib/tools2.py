@@ -1072,7 +1072,7 @@ def getPlayableLink(page):
                 exceptionsList.save()
         except:
             pass
-    settings.debug(result)
+    settings.log(result)
     return result
 
 
