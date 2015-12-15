@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="script.module.mctools" name="common tools mc" version="1.2.5" provider-name="mancuniancol">
+<addon id="script.module.mctools" name="common tools mc" version="1.2.6" provider-name="mancuniancol">
   <requires>
     <import addon="xbmc.python" version="2.1.0" />
     <import addon="script.module.beautifulsoup4" optional="false"/>
@@ -10,6 +10,7 @@
     <import addon="script.module.simplejson" optional="false"/>
     <import addon="script.module.metahandler" optional="false"/>
     <import addon="script.module.httplib2" optional="false"/>
+    <import addon="script.extendedinfo" optional="false"/>
   </requires>
   <extension point="xbmc.python.module" library="lib" />
   <extension point="xbmc.addon.metadata">
