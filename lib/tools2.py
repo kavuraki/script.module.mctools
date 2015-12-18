@@ -248,7 +248,7 @@ def formatTitle(value='', fileName='', typeVideo="MOVIE"):
                 'brrip', 'blu', 'webrip', 'hdrip', 'bdrip', 'microhd', 'ita', 'eng', 'esp', "spanish espanol",
                 'castellano', '480p', 'bd', 'bdrip', 'hi10p', 'sub', 'x264', 'sbs', '3d', 'br', 'hdts', 'dts',
                 'dual audio', 'hevc', 'aac', 'batch', 'h264', 'gratis', 'descargar', 'hd', 'html', 'hdit',
-                'blurip', 'high definition', 'german'
+                'blurip', 'high definition', 'german', 'french', 'truefrench', 'vostfr', 'dvdscr',
                 ]
     sshow = None
     for format in formats:  # search if it is a show
@@ -1064,9 +1064,13 @@ def getPlayableLink(page):
                     if content != None and len(content) > 0:
                         result = settings.value["urlAddress"] + content[0]
                     else:
-                        content = re.findall('https?:[^\'"\s<>\[\]]+torrent', data)
+                        content = re.findall('/telechargement/[a-z0-9-_.]+', data)  #cpasbien
                         if content != None and len(content) > 0:
-                            result = content[0]
+                            result = settings.value["urlAddress"] + content[0]
+                        else:
+                            content = re.findall('https?:[^\'"\s<>\[\]]+torrent', data)
+                            if content != None and len(content) > 0:
+                                result = content[0]
             else:
                 exceptionsList.add(re.search("^https?:\/\/(.*?)/", page).group(1))
                 exceptionsList.save()

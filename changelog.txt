@@ -1,3 +1,4 @@
+Version 1.2.7 cpasbien support
 Version 1.2.6 Extended info script support
 Version 1.2.5 adding SAFE parameters to storage
 Version 1.2.4 Adding Support to not duplicated items in the library
