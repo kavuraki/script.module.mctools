@@ -238,7 +238,7 @@ def formatTitle(value='', fileName='', typeVideo="MOVIE"):
                ' [0-9][0-9] [0-9][0-9] [0-9][0-9]', ' season [0-9]+ episode [0-9]+',
                ' season [0-9]+', ' season[0-9]+', ' s[0-9][0-9]',
                ' temporada [0-9]+ capitulo [0-9]+', ' temporada[0-9]+', ' temporada [0-9]+',
-               ' seizoen [0-9]+ afl [0-9]+',
+               ' seizoen [0-9]+ afl [0-9]+', ' saison[0-9]+', ' saison [0-9]+',
                ' temp [0-9]+ cap [0-9]+', ' temp[0-9]+ cap[0-9]+',
                ]
     keywords = ['en 1080p', 'en 720p', 'en dvd', 'en dvdrip', 'en hdtv', 'en bluray', 'en blurayrip',
@@ -383,6 +383,8 @@ class UnTaggle():
     fanart = ""
     season = ""
     episode = ""
+    imdb_id = ""
+    titleEpisode = ""
 
     def __init__(self, value='', fileName='', typeVideo="MOVIE", useUrl=True):
         self.title = normalize(value)
@@ -401,11 +403,13 @@ class UnTaggle():
         self.info = self.infoLabels
         self.label = self.infoTitle["title"] + self.infoTitle.get("textQuality", "") + " " + self.infoTitle["language"]
         self.id = self.infoLabels.get("imdb_id", "")
+        self.imdb_id = self.id
         if self.infoTitle["type"] == 'SHOW' and settings.value[
             "infoLabels"] == "true":  # difference with show and anime
             self.info = getInfoEpisode(self.infoLabels)
             self.id = self.infoLabels.get("tvdb_id", "")
-            self.label += ' - ' + normalize(self.info.get('title', "")) if self.info.get('title', "") != "" else ""
+            self.titleEpisode = ' - ' + normalize(self.info.get('title', "")) if self.info.get('title', "") != "" else ""
+            self.label += self.titleEpisode
             self.season = self.infoTitle.get("season", "")
             self.episode = self.infoTitle.get("episode", "")
         self.cover = self.info.get('cover_url', settings.icon)
