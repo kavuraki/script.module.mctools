@@ -225,6 +225,8 @@ def _cleanTitle(value=''):
 
 
 def formatTitle(value='', fileName='', typeVideo="MOVIE"):
+    if fileName.startswith('magnet'):
+        fileName = ''
     if fileName == '':
         fileName = value
     pos = value.rfind("/")

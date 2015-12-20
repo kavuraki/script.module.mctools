@@ -1,3 +1,4 @@
+Version 1.2.9 excepting format magnet
 Version 1.2.8 adding episode name
 Version 1.2.7 cpasbien support
 Version 1.2.6 Extended info script support
