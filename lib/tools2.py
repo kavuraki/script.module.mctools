@@ -217,7 +217,8 @@ def exceptionsTitle(title=""):
 
 def _cleanTitle(value=''):
     keywordsCleanTitle = ['version', 'extendida', 'extended', 'edition', 'hd', 'unrated', 'version', 'vose',
-                          'special', 'edtion', 'uncensored', 'fixed', 'censurada', 'episode', 'ova', 'complete'
+                          'special', 'edtion', 'uncensored', 'fixed', 'censurada', 'episode', 'ova', 'complete',
+                          'swesub'
                           ]
     for keyword in keywordsCleanTitle:  # checking keywords
         value = (value + ' ').replace(' ' + keyword.title() + ' ', ' ')
@@ -250,7 +251,7 @@ def formatTitle(value='', fileName='', typeVideo="MOVIE"):
                 'brrip', 'blu', 'webrip', 'hdrip', 'bdrip', 'microhd', 'ita', 'eng', 'esp', "spanish espanol",
                 'castellano', '480p', 'bd', 'bdrip', 'hi10p', 'sub', 'x264', 'sbs', '3d', 'br', 'hdts', 'dts',
                 'dual audio', 'hevc', 'aac', 'batch', 'h264', 'gratis', 'descargar', 'hd', 'html', 'hdit',
-                'blurip', 'high definition', 'german', 'french', 'truefrench', 'vostfr', 'dvdscr',
+                'blurip', 'high definition', 'german', 'french', 'truefrench', 'vostfr', 'dvdscr', 'swesub'
                 ]
     sshow = None
     for format in formats:  # search if it is a show
