@@ -2,6 +2,15 @@
 __author__ = 'Mancuniancol'
 import re
 
+
+class Settings():
+    animeFolder = ''
+    movieFolder = ''
+    showFolder = ''
+
+settings = Settings()
+
+
 ################################
 #### SCRAPER TITLES ############
 ################################
@@ -53,7 +62,7 @@ def safeName(value):  # Make the name directory and filename safe
     value = value.replace("640x480", "480p")
     value = value.replace("microhd", " microhd")  # sometimes comes with the year
     value = value.replace("dvdrip", " dvdrip")  # sometimes comes with the year
-    keys = {'"': ' ', '*': ' ', '/': ' ', ':': ' ', '<': ' ', '>': ' ', '?': ' ', '|': ' ',
+    keys = {'"': ' ', '*': ' ', '/': ' ', ':': ' ', '<': ' ', '>': ' ', '?': ' ', '|': ' ', '~': ' ',
             "'": '', 'Of': 'of', 'De': 'de', '.': ' ', ')': ' ', '(': ' ', '[': ' ', ']': ' ', '-': ' '}
     for key in keys.keys():
         value = value.replace(key, keys[key])
@@ -73,15 +82,24 @@ def checkQuality(text=""):
                 "R5": ["r5", "r5.line", "r5 ac3 5 1 hq"],
                 "DVD-Rip": ["dvdrip", "dvd-rip"],
                 "DVD-R": ["dvdr", "dvd-full", "full-rip", "iso rip", "lossless rip", "untouched rip", "dvd-5 dvd-9"],
-                "HDTV": ["dsr", "dsrip", "dthrip", "dvbrip", "hdtv", "pdtv", "tvrip", "hdtvrip", "hdrip"],
+                "HDTV": ["dsr", "dsrip", "dthrip", "dvbrip", "hdtv", "pdtv", "tvrip", "hdtvrip", "hdrip", "hdit",
+                         "high definition"],
                 "VODRip": ["vodrip", "vodr"],
                 "WEB-DL": ["webdl", "web dl", "web-dl"],
                 "WEBRip": ["web-rip", "webrip", "web rip"],
                 "WEBCap": ["web-cap", "webcap", "web cap"],
-                "BD/BRRip": ["bdrip", "brrip", "blu-ray", "bluray", "bdr", "bd5", "bd"],
+                "BD/BRRip": ["bdrip", "brrip", "blu-ray", "bluray", "bdr", "bd5", "bd", "blurip"],
                 "MicroHD": ["microhd"],
                 "FullHD": ["fullhd"],
                 "BR-Line": ["br line"],
+                # video formats
+                "x264": ["x264", "x 264"],
+                "x265 HEVC": ["x265 hevc", "x265", "x 265", "hevc"],
+                # audio
+                "DD5.1": ["dd5 1", "dd51", "dual audio 5"],
+                "AC3 5.1": ["ac3"],
+                "ACC": ["acc"],
+                "DUAL AUDIO": ["dual", "dual audio"],
                 }
     color = {"Cam": "FFF4AE00",
              "Telesync": "FFF4AE00",
@@ -102,6 +120,14 @@ def checkQuality(text=""):
              "MicroHD": "FFD35400",
              "FullHD": "FFD35400",
              "BR-Line": "FFD35400",
+             # video formats
+             "x264": "FFFB0C06",
+             "x265 HEVC": "FFFB0C06",
+             # audio
+             "DD5.1": "FF089DE3",
+             "AC3 5.1": "FF089DE3",
+             "ACC": "FF089DE3",
+             "DUAL AUDIO": "FF089DE3",
              }
     quality = "480p"
     textQuality = ""
@@ -163,6 +189,10 @@ def findLanguage(value=""):
         language = "Hindi"
     if "castellano" in value:
         language = "Castellano"
+    if "french" in value or 'francais' in value:
+        language = "French"
+    if "german" in value:
+        language = "German"
     return language
 
 
@@ -181,7 +211,8 @@ def exceptionsTitle(title=""):
 
 def _cleanTitle(value=''):
     keywordsCleanTitle = ['version', 'extendida', 'extended', 'edition', 'hd', 'unrated', 'version', 'vose',
-                          'special', 'edtion', 'uncensored', 'fixed', 'censurada', 'episode', 'ova', 'complete'
+                          'special', 'edtion', 'uncensored', 'fixed', 'censurada', 'episode', 'ova', 'complete',
+                          'swesub'
                           ]
     for keyword in keywordsCleanTitle:  # checking keywords
         value = (value + ' ').replace(' ' + keyword.title() + ' ', ' ')
@@ -189,6 +220,8 @@ def _cleanTitle(value=''):
 
 
 def formatTitle(value='', fileName='', typeVideo="MOVIE"):
+    if fileName.startswith('magnet'):
+        fileName = ''
     if fileName == '':
         fileName = value
     pos = value.rfind("/")
@@ -202,7 +235,7 @@ def formatTitle(value='', fileName='', typeVideo="MOVIE"):
                ' [0-9][0-9] [0-9][0-9] [0-9][0-9]', ' season [0-9]+ episode [0-9]+',
                ' season [0-9]+', ' season[0-9]+', ' s[0-9][0-9]',
                ' temporada [0-9]+ capitulo [0-9]+', ' temporada[0-9]+', ' temporada [0-9]+',
-               ' seizoen [0-9]+ afl [0-9]+',
+               ' seizoen [0-9]+ afl [0-9]+', ' saison[0-9]+', ' saison [0-9]+',
                ' temp [0-9]+ cap [0-9]+', ' temp[0-9]+ cap[0-9]+',
                ]
     keywords = ['en 1080p', 'en 720p', 'en dvd', 'en dvdrip', 'en hdtv', 'en bluray', 'en blurayrip',
@@ -211,7 +244,9 @@ def formatTitle(value='', fileName='', typeVideo="MOVIE"):
                 'blurayrip', 'web', 'rip', 'ts screener', 'screener', 'cam', 'camrip', 'ts-screener', 'hdrip',
                 'brrip', 'blu', 'webrip', 'hdrip', 'bdrip', 'microhd', 'ita', 'eng', 'esp', "spanish espanol",
                 'castellano', '480p', 'bd', 'bdrip', 'hi10p', 'sub', 'x264', 'sbs', '3d', 'br', 'hdts', 'dts',
-                'dual audio', 'hevc', 'aac', 'batch', 'h264', 'gratis', 'descargar', 'hd', 'html'
+                'dual audio', 'hevc', 'aac', 'batch', 'h264', 'gratis', 'descargar', 'hd', 'html', 'hdit',
+                'blurip', 'high definition', 'german', 'french', 'truefrench', 'vostfr', 'dvdscr', 'swesub',
+                '4k', 'uhd',
                 ]
     sshow = None
     for format in formats:  # search if it is a show
@@ -331,4 +366,5 @@ def formatTitle(value='', fileName='', typeVideo="MOVIE"):
                 pass
         return result
 
-print formatTitle('A to Z Season 1 Episode 13 | 1337x')
+
+print formatTitle('[4k ultra hd] San Andreas 4K SBS 6 Channel AAC  ENG 3D [SEEDERS (0) LEECHERS (0)]')
