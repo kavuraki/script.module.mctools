@@ -1278,7 +1278,9 @@ def integration(titles=[], id=[], magnets=[], typeList='', folder='', typeVideo=
                 goodSpider()  # to be a smart spider
                 if channel == "":
                     uri_string = quote_plus(getPlayableLink(uncodeName(normalize(magnets[cm]))))
-                    if settings.value["plugin"] == 'Pulsar':
+                    if settings.value["plugin"] == 'Quasar':
+                        link = 'plugin://plugin.video.quasar/play?uri=%s' % uri_string
+                    elif settings.value["plugin"] == 'Pulsar':
                         link = 'plugin://plugin.video.pulsar/play?uri=%s' % uri_string
                     elif settings.value["plugin"] == 'KmediaTorrent':
                         link = 'plugin://plugin.video.kmediatorrent/play/%s' % uri_string
