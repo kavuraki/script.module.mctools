@@ -540,7 +540,7 @@ class Settings:  # Read Configuration's Addon
         if self.value["removeStrm"] == 'true':
             self.notification('Removing .strm files...')
             if self.value["typeLibrary"] == "Global":
-                self.storageName = "pulsar global subscription.txt"
+                self.storageName = "quasar global subscription.txt"
             storage = Storage(self.storageName, type="dict")
             from shutil import rmtree
             for item in storage.database:
@@ -850,7 +850,7 @@ class TvShow():
                         dataShow = item
                         break
             if dataShow is not None:
-                self.code = dataShow['path'].replace('plugin://plugin.video.pulsar/show/', '').replace(
+                self.code = dataShow['path'].replace('plugin://plugin.video.quasar/show/', '').replace(
                     '/seasons', '')
                 sleep(0.2)
                 response = browser.get('http://localhost:65251/show/%s/seasons' % self.code)
@@ -946,7 +946,7 @@ class Movie():
                     label = data['items'][0]['label']
                     path = data['items'][0]['path']
                     year = data['items'][0]['info']['year']
-                self.code = path.replace('plugin://plugin.video.pulsar/movie/', '').replace('/play', '')
+                self.code = path.replace('plugin://plugin.video.quasar/movie/', '').replace('/play', '')
                 self.label = label
                 self.year = year
             else:
@@ -1428,7 +1428,7 @@ def subscription(titles=[], id=[], typeList='', folder='', silence=False, messag
                 if settings.value["detailedLog"] == 'true':
                     settings.log('Code %s=%s' % (typeList, data['ID']))
 
-                link = 'plugin://plugin.video.pulsar/movie/%s/%s' % (data['ID'], settings.value["action"])
+                link = 'plugin://plugin.video.quasar/movie/%s/%s' % (data['ID'], settings.value["action"])
 
                 # start to create the strm file
                 filename = path.join(directory, item + ".strm")
@@ -1463,7 +1463,7 @@ def subscription(titles=[], id=[], typeList='', folder='', silence=False, messag
                     for episode in range(data['episode'] + 1, data['lastEpisode'][season] + 1):
                         if not existInKodiLibrary(data['ID'], str(season), str(episode)):
                             cont += 1
-                            link = 'plugin://plugin.video.pulsar/show/%s/season/%s/episode/%s/%s' % (
+                            link = 'plugin://plugin.video.quasar/show/%s/season/%s/episode/%s/%s' % (
                                 data['ID'], season, episode, settings.value["action"])
                             if not silence: settings.pDialog.update(int(float(cm) / total * 100),
                                                                     "%s%s S%02dE%02d.strm" % (
