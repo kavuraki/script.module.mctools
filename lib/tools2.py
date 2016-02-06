@@ -1459,7 +1459,7 @@ def subscription(titles=[], id=[], typeList='', folder='', silence=False, messag
                         '%s %s-%s: %s' % (item, data['firstSeason'], data['lastSeason'], data['lastEpisode']))
                 with open(path.join(directory, "tvshow.nfo"), "w") as text_file:  # create .nfo SHOW
                     text_file.write("http://thetvdb.com/?tab=series&id=%s" % data['ID'])
-                for season in range(max(data['season'], data['firstSeason']), data['lastSeason'] + 1):
+                for season in range(max(data['season'], data['firstSeason']), data['lastSeason']):
                     for episode in range(data['episode'] + 1, data['lastEpisode'][season] + 1):
                         if not existInKodiLibrary(data['ID'], str(season), str(episode)):
                             cont += 1
