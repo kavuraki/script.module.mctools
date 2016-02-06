@@ -1460,22 +1460,23 @@ def subscription(titles=[], id=[], typeList='', folder='', silence=False, messag
                 with open(path.join(directory, "tvshow.nfo"), "w") as text_file:  # create .nfo SHOW
                     text_file.write("http://thetvdb.com/?tab=series&id=%s" % data['ID'])
                 for season in range(max(data['season'], data['firstSeason']), data['lastSeason'] + 1):
-                    for episode in range(data['episode'] + 1, data['lastEpisode'][season] + 1):
-                        if not existInKodiLibrary(data['ID'], str(season), str(episode)):
-                            cont += 1
-                            link = 'plugin://plugin.video.quasar/show/%s/season/%s/episode/%s/%s' % (
-                                data['ID'], season, episode, settings.value["action"])
-                            if not silence: settings.pDialog.update(int(float(cm) / total * 100),
-                                                                    "%s%s S%02dE%02d.strm" % (
-                                                                        directory, item, season, episode))
-                            if cont % 100 == 0: settings.notification(
-                                settings.string(32037) % (cont, messageType[typeList], message))
-                            filename = path.join(directory, item + " S%02dE%02d.strm" % (season, episode))
-                            with open(filename, "w") as text_file:  # create .strm
-                                text_file.write(link)
-                                settings.log(settings.string(32038) % filename)
-                            if not silence and settings.pDialog.iscanceled(): break
-                    data['episode'] = 0  # change to new season and reset the episode to 1
+                    if data['lastEpisode'].has_key(season):
+                        for episode in range(data['episode'] + 1, data['lastEpisode'][season] + 1):
+                            if not existInKodiLibrary(data['ID'], str(season), str(episode)):
+                                cont += 1
+                                link = 'plugin://plugin.video.quasar/show/%s/season/%s/episode/%s/%s' % (
+                                    data['ID'], season, episode, settings.value["action"])
+                                if not silence: settings.pDialog.update(int(float(cm) / total * 100),
+                                                                        "%s%s S%02dE%02d.strm" % (
+                                                                            directory, item, season, episode))
+                                if cont % 100 == 0: settings.notification(
+                                    settings.string(32037) % (cont, messageType[typeList], message))
+                                filename = path.join(directory, item + " S%02dE%02d.strm" % (season, episode))
+                                with open(filename, "w") as text_file:  # create .strm
+                                    text_file.write(link)
+                                    settings.log(settings.string(32038) % filename)
+                                if not silence and settings.pDialog.iscanceled(): break
+                        data['episode'] = 0  # change to new season and reset the episode to 1
                 if not silence and settings.pDialog.iscanceled(): break
                 data['season'] = data['lastSeason']
                 if data['lastEpisode'].has_key(data['lastSeason']):
