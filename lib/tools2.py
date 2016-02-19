@@ -946,7 +946,7 @@ class Movie():
                     label = data['items'][0]['label']
                     path = data['items'][0]['path']
                     year = data['items'][0]['info']['year']
-                self.code = path.replace('plugin://plugin.video.quasar/movie/', '').replace('/play', '')
+                self.code = path.replace('plugin://plugin.video.quasar/movie/', '').replace('/play', '').replace('/links', '')
                 self.label = label
                 self.year = year
             else:
