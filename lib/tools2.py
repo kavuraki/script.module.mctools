@@ -1429,12 +1429,12 @@ def subscription(titles=[], id=[], typeList='', folder='', silence=False, messag
                     settings.log('Code %s=%s' % (typeList, data['ID']))
 
                 import urllib2
-		        import json
-		        tmdb_url = "http://api.themoviedb.org/3/movie/" + data['ID'] + "?api_key=[YOUR API KEY HERE]"
-		        response = urllib2.urlopen(tmdb_url)
-		        movie = response.read().decode('utf8')
-        	    m = json.loads(movie)
-        	    link = "plugin://plugin.video.quasar/library/play/movie/" + str(m["id"])
+		import json
+		tmdb_url = "http://api.themoviedb.org/3/movie/" + data['ID'] + "?api_key=[YOUR API KEY HERE]"
+		response = urllib2.urlopen(tmdb_url)
+		movie = response.read().decode('utf8')
+        	m = json.loads(movie)
+        	link = "plugin://plugin.video.quasar/library/play/movie/" + str(m["id"])
 
                 # start to create the strm file
                 filename = path.join(directory, item + ".strm")
